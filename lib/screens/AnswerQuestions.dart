@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -73,7 +72,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                               style: TextButton.styleFrom(
                                 backgroundColor: _selectedButtonIndex == index
                                     ? Colors.orangeAccent
-                                    : Colors.lightBlue,
+                                    : Colors.red,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
