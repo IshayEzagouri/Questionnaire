@@ -72,7 +72,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                               style: TextButton.styleFrom(
                                 backgroundColor: _selectedButtonIndex == index
                                     ? Colors.orangeAccent
-                                    : Colors.red,
+                                    : Colors.lightBlue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
