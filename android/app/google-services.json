@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "387423625888",
+    "project_id": "mashov-9c3e8",
+    "storage_bucket": "mashov-9c3e8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387423625888:android:f2b7f83a181d6ba5291fc5",
+        "android_client_info": {
+          "package_name": "com.example.mashov"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "387423625888-ustl5hjn7hu86n1tvtocf3ggrj9mln2q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbLKMdFhRkR48DhknQTvAxDC_XROgMeOQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "387423625888-ustl5hjn7hu86n1tvtocf3ggrj9mln2q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "387423625888-81hia0pmkeqke548kvl066505fk579em.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mashov"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
