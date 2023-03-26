@@ -14,6 +14,26 @@ class AnswerQuestions extends StatefulWidget {
 }
 
 class _AnswerQuestionsState extends State<AnswerQuestions> {
+  List<double> scoreList = [];
+
+  void updateScoresArr(List<double> scoreList) {
+    print('tapped course id is ${tappedCourseID}');
+    _firestore
+        .collection('scores')
+        .where('id', isEqualTo: tappedCourseID)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach(
+        (doc) {
+          FirebaseFirestore.instance
+              .collection('scores')
+              .doc(doc.id)
+              .update({'scores': scoreList});
+        },
+      );
+    });
+  }
+
   static List<Map<String, dynamic>> _questions = [];
   int _currentIndex = 0;
   int _selectedButtonIndex = -1;
@@ -27,6 +47,23 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
           .toList();
     });
   }
+
+  void getTappedCourseID(var list) {
+    _firestore
+        .collection('courses')
+        .doc(list)
+        .get()
+        .then((DocumentSnapshot snapshot) {
+      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      int id = data['id'] as int;
+      print('ID: $id');
+      tappedCourseID = id;
+    }).catchError((error) {
+      print('Error getting document: $error');
+    });
+  }
+
+  int tappedCourseID = -1;
 
   void _showNextQuestion() {
     setState(() {
@@ -45,6 +82,12 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              ratingBarVisibility = false;
+              Navigator.of(context).pop();
+            }),
         title: Text('Questionnaire'),
       ),
       body: Column(
@@ -80,6 +123,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                                 ),
                               ),
                               onPressed: () {
+                                getTappedCourseID(documents[index].id);
+                                print(tappedCourseID);
                                 setState(() {
                                   _selectedButtonIndex = index;
                                   ratingBarVisibility = true;
@@ -104,11 +149,14 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               }),
           _questions.isEmpty
               ? CircularProgressIndicator()
-              : Padding(
-                  padding: EdgeInsets.only(left: 12, right: 12),
-                  child: Text(
-                    '${_questions[_currentIndex]['text']}',
-                    style: TextStyle(fontSize: 20),
+              : Visibility(
+                  visible: ratingBarVisibility,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 12, right: 12),
+                    child: Text(
+                      '${_questions[_currentIndex]['text']}',
+                      style: TextStyle(fontSize: 20),
+                    ),
                   ),
                 ),
           Visibility(
@@ -125,7 +173,13 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 color: Colors.amber,
               ),
               onRatingUpdate: (rating) {
-                print(_questions.length);
+                //TODO update scores
+                setState(() {
+                  scoreList.add(rating);
+                  updateScoresArr(scoreList);
+                });
+
+                print(rating);
                 if (_currentIndex < _questions.length - 1)
                   _showNextQuestion();
                 else {
