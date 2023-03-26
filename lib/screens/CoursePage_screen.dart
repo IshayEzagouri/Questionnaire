@@ -116,7 +116,7 @@ class _CoursePageState extends State<CoursePage> {
                                         getTappedCourseID(documents[index].id);
                                         updateScoresDocName(value);
                                       },
-                                    ),
+                                    ), //
                                     TextField(
                                       textAlign: TextAlign.center,
                                       decoration: InputDecoration.collapsed(
