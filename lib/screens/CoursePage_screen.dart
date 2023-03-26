@@ -27,6 +27,8 @@ void updateScoresDocName(String name) {
   });
 }
 
+//problem- course id only changes when tapped, not when added
+
 void getTappedCourseID(var list) {
   _firestore
       .collection('courses')
@@ -42,10 +44,11 @@ void getTappedCourseID(var list) {
   });
 }
 
-void getCoursesLength() async {
+Future getCoursesLength() async {
   AggregateQuerySnapshot query =
       await _firestore.collection('courses').count().get();
-  courseId = query.count;
+  courseId = await query.count;
+  return courseId;
 }
 
 class CoursePage extends StatefulWidget {
@@ -63,7 +66,7 @@ class _CoursePageState extends State<CoursePage> {
       ),
       body: SafeArea(
         child: FutureBuilder<QuerySnapshot>(
-          future: _firestore.collection('courses').orderBy('name').get(),
+          future: _firestore.collection('courses').orderBy('id').get(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
@@ -116,7 +119,7 @@ class _CoursePageState extends State<CoursePage> {
                                         getTappedCourseID(documents[index].id);
                                         updateScoresDocName(value);
                                       },
-                                    ), //
+                                    ),
                                     TextField(
                                       textAlign: TextAlign.center,
                                       decoration: InputDecoration.collapsed(
@@ -168,16 +171,17 @@ class _CoursePageState extends State<CoursePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           try {
-            getCoursesLength();
+            int courseLength = await getCoursesLength();
+            print(courseLength);
             var dataToSave = <String, dynamic>{
               'name': '',
               'professor': '',
-              'id': courseId
+              'id': courseLength
             };
 
             var scores = <String, dynamic>{
               'name': '',
-              'id': courseId,
+              'id': courseLength,
               'scores': null,
             };
             setState(() {
