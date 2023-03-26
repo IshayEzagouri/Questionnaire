@@ -8,6 +8,45 @@ import '../Classes/Course.dart';
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 late int tappedIDX;
 late int index;
+int courseId = 0;
+
+void updateScoresDocName(String name) {
+  _firestore
+      .collection('scores')
+      .where('id', isEqualTo: courseId)
+      .get()
+      .then((QuerySnapshot querySnapshot) {
+    querySnapshot.docs.forEach(
+      (doc) {
+        FirebaseFirestore.instance
+            .collection('scores')
+            .doc(doc.id)
+            .update({'name': name});
+      },
+    );
+  });
+}
+
+void getTappedCourseID(var list) {
+  _firestore
+      .collection('courses')
+      .doc(list)
+      .get()
+      .then((DocumentSnapshot snapshot) {
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    int id = data['id'] as int;
+    print('ID: $id');
+    courseId = id;
+  }).catchError((error) {
+    print('Error getting document: $error');
+  });
+}
+
+void getCoursesLength() async {
+  AggregateQuerySnapshot query =
+      await _firestore.collection('courses').count().get();
+  courseId = query.count;
+}
 
 class CoursePage extends StatefulWidget {
   static String id = 'course_page';
@@ -66,12 +105,16 @@ class _CoursePageState extends State<CoursePage> {
                                       ),
                                       onTap: () {
                                         tappedIDX = index;
+                                        print(index);
                                       },
                                       onChanged: (value) {
                                         _firestore
                                             .collection('courses')
                                             .doc(documents[index].id)
                                             .update({'name': value});
+
+                                        getTappedCourseID(documents[index].id);
+                                        updateScoresDocName(value);
                                       },
                                     ),
                                     TextField(
@@ -125,9 +168,21 @@ class _CoursePageState extends State<CoursePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           try {
-            var dataToSave = <String, dynamic>{'name': '', 'professor': ''};
+            getCoursesLength();
+            var dataToSave = <String, dynamic>{
+              'name': '',
+              'professor': '',
+              'id': courseId
+            };
+
+            var scores = <String, dynamic>{
+              'name': '',
+              'id': courseId,
+              'scores': null,
+            };
             setState(() {
               _firestore.collection('courses').add(dataToSave);
+              _firestore.collection('scores').add(scores);
             });
           } catch (e) {
             print(e);

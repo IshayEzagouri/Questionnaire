@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+int courseId = 0;
+bool ratingBarVisibility = false;
 
 class AnswerQuestions extends StatefulWidget {
   static String id = 'answer_questions';
@@ -12,7 +14,7 @@ class AnswerQuestions extends StatefulWidget {
 }
 
 class _AnswerQuestionsState extends State<AnswerQuestions> {
-  List<Map<String, dynamic>> _questions = [];
+  static List<Map<String, dynamic>> _questions = [];
   int _currentIndex = 0;
   int _selectedButtonIndex = -1;
 
@@ -28,7 +30,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
 
   void _showNextQuestion() {
     setState(() {
-      _currentIndex = (_currentIndex + 1) % _questions.length;
+      _currentIndex++;
+      print(_currentIndex);
     });
   }
 
@@ -45,13 +48,12 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         title: Text('Questionnaire'),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.only(top: 30.0, bottom: 15),
-            child: Text(
-              'Choose a Course',
-              style: TextStyle(fontSize: 20),
-            ),
+          Text(
+            'Choose a Course',
+            style: TextStyle(fontSize: 20),
           ),
           FutureBuilder<QuerySnapshot>(
               future: _firestore.collection('courses').orderBy('name').get(),
@@ -62,7 +64,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   return SizedBox(
                     height: 100,
                     child: ListView.builder(
-                      padding: EdgeInsets.only(left: 40, right: 40, bottom: 40),
+                      padding: EdgeInsets.only(left: 40, right: 40),
                       scrollDirection: Axis.horizontal,
                       itemCount: documents.length,
                       itemBuilder: (BuildContext context, int index) {
@@ -80,6 +82,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                               onPressed: () {
                                 setState(() {
                                   _selectedButtonIndex = index;
+                                  ratingBarVisibility = true;
                                 });
                               },
                               child: Text(
@@ -101,11 +104,15 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               }),
           _questions.isEmpty
               ? CircularProgressIndicator()
-              : Text(
-                  '${_questions[_currentIndex]['text']}',
-                  style: TextStyle(fontSize: 30),
+              : Padding(
+                  padding: EdgeInsets.only(left: 12, right: 12),
+                  child: Text(
+                    '${_questions[_currentIndex]['text']}',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ),
-          Expanded(
+          Visibility(
+            visible: ratingBarVisibility,
             child: RatingBar.builder(
               initialRating: 3,
               minRating: 1,
@@ -118,7 +125,12 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 color: Colors.amber,
               ),
               onRatingUpdate: (rating) {
-                _showNextQuestion();
+                print(_questions.length);
+                if (_currentIndex < _questions.length - 1)
+                  _showNextQuestion();
+                else {
+                  //TODO do something here-questions over
+                }
               },
             ),
           ),
