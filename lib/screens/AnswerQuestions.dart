@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// TODO one big problem with the scoring systems. when use starts scoring, the array isn't unique to that chosen course
+// need to decide if the question should pick up from where user left which will be a lot of work, or requiring the user to finish all questions in order for the ratings to be saved.
+
+//TODO create a login page for regular users and verify that they can score each course only once. their rating need to add to the total amount of the scoring array's values, NOT REPLACE THEM!
+
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
@@ -115,14 +120,18 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                           children: [
                             TextButton(
                               style: TextButton.styleFrom(
-                                backgroundColor: _selectedButtonIndex == index
-                                    ? Colors.orangeAccent
-                                    : Colors.lightBlue,
+                                backgroundColor:
+                                    _selectedButtonIndex == index &&
+                                            ratingBarVisibility == true
+                                        ? Colors.orangeAccent
+                                        : Colors.lightBlue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
                               ),
                               onPressed: () {
+                                _currentIndex = 0;
+                                scoreList.clear();
                                 getTappedCourseID(documents[index].id);
                                 print(tappedCourseID);
                                 setState(() {
@@ -173,7 +182,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 color: Colors.amber,
               ),
               onRatingUpdate: (rating) {
-                //TODO update scores
+                //TODO update scores-make sure to add to the list, not replace it
                 setState(() {
                   scoreList.add(rating);
                   updateScoresArr(scoreList);
@@ -184,6 +193,9 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   _showNextQuestion();
                 else {
                   //TODO do something here-questions over
+                  // scoreList.clear();
+                  ratingBarVisibility = false;
+                  print('visibilty turned false');
                 }
               },
             ),
