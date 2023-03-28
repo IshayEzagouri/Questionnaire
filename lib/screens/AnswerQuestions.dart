@@ -22,14 +22,26 @@ class AnswerQuestions extends StatefulWidget {
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
 
-  void fetchScoreList() async {
+  Future<void> fetchScoreList() async {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
         .collection('scores')
         .where('id', isEqualTo: tappedCourseID)
         .get();
 
-    scoreList =
-        snapshot.docs.map((doc) => doc.data()['scores'] as double).toList();
+    // scoreList = await snapshot.docs
+    //.map((doc) => doc.data()['scores'] as double)
+    //.toList();
+
+    if (snapshot != null) {
+      scoreList = snapshot.docs
+          .map((doc) => (doc.data()['scores'] as List<dynamic>)
+              .map((value) => double.parse(value.toString()))
+              .toList())
+          .expand((i) => i)
+          .toList();
+
+      print(scoreList[2]);
+    }
   }
 
   void updateScoresArr(List<double> scoreList) {
@@ -210,6 +222,10 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 }
               },
             ),
+          ),
+          TextButton(
+            onPressed: fetchScoreList,
+            child: (Text('test')),
           ),
         ],
       ),
