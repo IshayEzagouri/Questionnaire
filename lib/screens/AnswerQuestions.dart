@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mashov/screens/test.dart';
 
 // TODO one big problem with the scoring systems. when use starts scoring, the array isn't unique to that chosen course
 // need to decide if the question should pick up from where user left which will be a lot of work, or requiring the user to finish all questions in order for the ratings to be saved.
@@ -18,7 +19,6 @@ class AnswerQuestions extends StatefulWidget {
   State<AnswerQuestions> createState() => _AnswerQuestionsState();
 }
 
-//TODO fetch score list of the tapped course and save into scorelist
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
 
@@ -28,37 +28,33 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         .where('id', isEqualTo: tappedCourseID)
         .get();
 
-    // scoreList = await snapshot.docs
-    //.map((doc) => doc.data()['scores'] as double)
-    //.toList();
-
-    if (snapshot != null) {
+    if (snapshot != null && snapshot.docs.isNotEmpty) {
       scoreList = snapshot.docs
           .map((doc) => (doc.data()['scores'] as List<dynamic>)
               .map((value) => double.parse(value.toString()))
               .toList())
           .expand((i) => i)
           .toList();
-
-      print(scoreList[2]);
     }
   }
 
   void updateScoresArr(List<double> scoreList) {
-    print('tapped course id is ${tappedCourseID}');
     _firestore
         .collection('scores')
         .where('id', isEqualTo: tappedCourseID)
         .get()
         .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach(
-        (doc) {
-          FirebaseFirestore.instance
-              .collection('scores')
-              .doc(doc.id)
-              .update({'scores': scoreList});
-        },
-      );
+      querySnapshot.docs.forEach((doc) async {
+        var existingScores = doc['scores'] as List<dynamic>;
+        var newScores = List<double>.from(existingScores);
+        for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
+          newScores[i] += scoreList[i];
+        }
+        await FirebaseFirestore.instance
+            .collection('scores')
+            .doc(doc.id)
+            .update({'scores': newScores});
+      });
     });
   }
 
@@ -84,7 +80,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         .then((DocumentSnapshot snapshot) {
       Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
       int id = data['id'] as int;
-      print('ID: $id');
+
       tappedCourseID = id;
     }).catchError((error) {
       print('Error getting document: $error');
@@ -156,7 +152,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                                 _currentIndex = 0;
                                 scoreList.clear();
                                 getTappedCourseID(documents[index].id);
-                                print(tappedCourseID);
+
                                 setState(() {
                                   _selectedButtonIndex = index;
                                   ratingBarVisibility = true;
@@ -205,7 +201,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 color: Colors.amber,
               ),
               onRatingUpdate: (rating) {
-                //TODO update scores-make sure to add to the list, not replace it
+                print('question index $_currentIndex');
                 setState(() {
                   scoreList.add(rating);
                   updateScoresArr(scoreList);
@@ -224,7 +220,9 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
             ),
           ),
           TextButton(
-            onPressed: fetchScoreList,
+            onPressed: () {
+              Navigator.pushNamed(context, test.id);
+            },
             child: (Text('test')),
           ),
         ],

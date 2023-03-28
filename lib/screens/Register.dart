@@ -1,27 +1,27 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mashov/screens/AdminPage.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 String userName = "";
 String password = "";
 final _auth = FirebaseAuth.instance;
 
-class LoginPage extends StatefulWidget {
-  static String id = 'login_screen';
+class Registration extends StatefulWidget {
+  static String id = 'registration_screen';
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegistrationState createState() => _RegistrationState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegistrationState extends State<Registration> {
   bool showSpinner = false;
 
   @override
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
+      print("completed");
       setState(() {});
     });
   }
@@ -83,17 +83,22 @@ class _LoginPageState extends State<LoginPage> {
                     showSpinner = true;
                   });
                   try {
-                    final user = await _auth.signInWithEmailAndPassword(
-                        email: userName, password: password);
-
-                    if (user != null)
-                      Navigator.pushNamed(context, AdminPage.id);
-                    showSpinner = false;
+                    final credential =
+                        await _auth.createUserWithEmailAndPassword(
+                      email: userName,
+                      password: password,
+                    );
+                  } on FirebaseAuthException catch (e) {
+                    if (e.code == 'weak-password') {
+                      print('The password provided is too weak.');
+                    } else if (e.code == 'email-already-in-use') {
+                      print('The account already exists for that email.');
+                    }
                   } catch (e) {
                     print(e);
                   }
                 },
-                text: 'Log In',
+                text: 'Register',
                 color: Colors.blue,
               ),
             ],

@@ -8,6 +8,7 @@ import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'screens/test.dart';
 import 'screens/HomePage.dart';
 import 'screens/AnswerQuestions.dart';
+import 'screens/Register.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
           )),
       initialRoute: HomePage.id,
       routes: {
+        Registration.id: (context) => Registration(),
         AnswerQuestions.id: (context) => AnswerQuestions(),
         HomePage.id: (context) => HomePage(),
         LoginPage.id: (context) => LoginPage(),

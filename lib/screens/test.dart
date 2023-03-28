@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:mashov/Classes/Questions.dart';
 
 class test extends StatefulWidget {
@@ -16,11 +15,140 @@ class _testState extends State<test> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          child: Text('${questions[0].questionText}'),
-        ),
+        body: SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 4),
+              ),
+              child: SingleChildScrollView(
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                      Text(
+                        'test',
+                        style: TextStyle(fontSize: 34),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                  Text(
+                    'test',
+                    style: TextStyle(fontSize: 34),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-    );
+    ));
   }
 }
