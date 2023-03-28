@@ -18,8 +18,19 @@ class AnswerQuestions extends StatefulWidget {
   State<AnswerQuestions> createState() => _AnswerQuestionsState();
 }
 
+//TODO fetch score list of the tapped course and save into scorelist
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
+
+  void fetchScoreList() async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('scores')
+        .where('id', isEqualTo: tappedCourseID)
+        .get();
+
+    scoreList =
+        snapshot.docs.map((doc) => doc.data()['scores'] as double).toList();
+  }
 
   void updateScoresArr(List<double> scoreList) {
     print('tapped course id is ${tappedCourseID}');

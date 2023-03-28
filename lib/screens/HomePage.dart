@@ -5,6 +5,7 @@ import 'package:mashov/screens/AnswerQuestions.dart';
 import 'package:mashov/screens/CoursePage_screen.dart';
 import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:mashov/screens/LoginPage.dart';
+import 'package:mashov/screens/RegistrationPage.dart';
 import 'package:mashov/screens/test.dart';
 
 class HomePage extends StatefulWidget {
@@ -118,6 +119,32 @@ class _HomePageState extends State<HomePage>
                   },
                   child: Text(
                     'Start Questionnaire',
+                    style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Container(
+                  child: Image.asset('images/logo.png'),
+                  height: controller.value * 55,
+                ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                        width: 2,
+                        color: Colors.black87,
+                      ),
+                      shape: StadiumBorder()),
+                  onPressed: () {
+                    Navigator.pushNamed(context, RegistrationPage.id);
+                  },
+                  child: Text(
+                    'Register',
                     style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.w700,
