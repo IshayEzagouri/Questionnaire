@@ -46,7 +46,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) async {
         var existingScores = doc['scores'] as List<dynamic>;
-        var newScores = List<double>.from(existingScores);
+        var newScores =
+            List<double>.from(existingScores.map((score) => score.toDouble()));
         for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
           newScores[i] += scoreList[i];
         }

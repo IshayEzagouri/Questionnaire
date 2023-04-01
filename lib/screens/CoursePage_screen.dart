@@ -5,10 +5,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../Classes/Course.dart';
 
+User? loggedInUser;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 late int tappedIDX;
 late int index;
 int courseId = 0;
+
+final _auth = FirebaseAuth.instance;
+
+void getCurrentUser() async {
+  try {
+    final user = await _auth.currentUser;
+    if (user != null) {
+      loggedInUser = user;
+      print(loggedInUser!.email);
+    }
+  } catch (e) {
+    print(e);
+  }
+}
 
 void updateScoresDocName(String name) {
   _firestore
@@ -58,6 +73,12 @@ class CoursePage extends StatefulWidget {
 }
 
 class _CoursePageState extends State<CoursePage> {
+  @override
+  void initState() {
+    getCurrentUser();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,18 +1,29 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:mashov/Classes/Course.dart';
 import '../Classes/Questions.dart';
-import 'test.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+User? loggedInUser;
+final _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 CollectionReference collectionReference = _firestore.collection('questions');
 List<Question> questions = [];
 String questionText = '';
 late int tappedIDX;
 late int index;
+
+void getCurrentUser() async {
+  try {
+    final user = await _auth.currentUser;
+    if (user != null) {
+      loggedInUser = user;
+      print(loggedInUser!.email);
+    }
+  } catch (e) {
+    print(e);
+  }
+}
 
 class DisplayQuestions extends StatefulWidget {
   static String id = 'display_questions_page';
@@ -24,6 +35,7 @@ class DisplayQuestions extends StatefulWidget {
 class _DisplayQuestionsState extends State<DisplayQuestions> {
   @override
   void initState() {
+    getCurrentUser();
     super.initState();
   }
 

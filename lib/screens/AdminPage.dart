@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:mashov/Classes/Course.dart';
-import 'package:mashov/screens/CoursePage_screen.dart';
-import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mashov/screens/DisplayQuestions_screen.dart';
+import 'package:mashov/screens/CoursePage_screen.dart';
+
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 User? loggedInUser;
 
@@ -29,6 +31,16 @@ class _AdminPageState extends State<AdminPage>
     } catch (e) {
       print(e);
     }
+  }
+
+  void clearScores() {
+    _firestore.collection('scores').get().then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        var existingScores = doc['scores'] as List<dynamic>;
+        var newScores = List.filled(existingScores.length, 0.0);
+        doc.reference.update({'scores': newScores});
+      });
+    });
   }
 
   @override
@@ -132,6 +144,32 @@ class _AdminPageState extends State<AdminPage>
                   },
                   child: Text(
                     'Add or remove questions',
+                    style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Container(
+                  child: Image.asset('images/logo.png'),
+                  height: controller.value * 55,
+                ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                        width: 2,
+                        color: Colors.black87,
+                      ),
+                      shape: StadiumBorder()),
+                  onPressed: () {
+                    clearScores();
+                  },
+                  child: Text(
+                    'Clear Scores',
                     style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.w700,
