@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:mashov/screens/HomePage.dart';
 import 'package:flutter/material.dart';
 import '../Classes/Questions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -130,6 +130,16 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
           ),
         ],
       )),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _auth.signOut();
+          print('logged out');
+          Navigator.pushNamed(context, HomePage.id);
+        },
+        child: Icon(Icons.logout),
+        backgroundColor: Colors.orangeAccent,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

@@ -1,13 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:mashov/screens/AdminPage.dart';
 import 'package:mashov/screens/AnswerQuestions.dart';
 import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/Register.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+bool SignedIN = false;
 
 class HomePage extends StatefulWidget {
   static String id = 'home_page';
   @override
   State<HomePage> createState() => _HomePageState();
+}
+
+final _auth = FirebaseAuth.instance;
+User? loggedInUser;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+void getCurrentUser() async {
+  try {
+    final user = await _auth.currentUser;
+    if (user != null) {
+      SignedIN = true;
+      loggedInUser = user;
+      print(loggedInUser!.email);
+      print(SignedIN);
+    }
+  } catch (e) {
+    print(e);
+  }
 }
 
 class _HomePageState extends State<HomePage>
@@ -18,6 +40,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    getCurrentUser();
     controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -32,6 +55,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
+    getCurrentUser();
     super.dispose();
     controller.dispose();
   }
@@ -85,10 +109,15 @@ class _HomePageState extends State<HomePage>
                       ),
                       shape: StadiumBorder()),
                   onPressed: () {
-                    Navigator.pushNamed(context, LoginPage.id);
+                    // can add an admin bool. then check if admin. needs to correlate to the signedOut bool.
+                    print(SignedIN);
+                    if (!SignedIN)
+                      Navigator.pushNamed(context, LoginPage.id);
+                    else
+                      Navigator.pushNamed(context, AdminPage.id);
                   },
                   child: Text(
-                    'Log In (Admins only)',
+                    'Admin Panel',
                     style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.w700,
@@ -111,7 +140,11 @@ class _HomePageState extends State<HomePage>
                       ),
                       shape: StadiumBorder()),
                   onPressed: () {
-                    Navigator.pushNamed(context, AnswerQuestions.id);
+                    print(SignedIN);
+                    if (!SignedIN)
+                      Navigator.pushNamed(context, LoginPage.id);
+                    else
+                      Navigator.pushNamed(context, AdminPage.id);
                   },
                   child: Text(
                     'Start Questionnaire',
@@ -155,6 +188,20 @@ class _HomePageState extends State<HomePage>
           ],
         ),
       ),
+      floatingActionButton: Visibility(
+        visible: SignedIN,
+        child: FloatingActionButton(
+          onPressed: () {
+            _auth.signOut();
+            SignedIN = false;
+            setState(() {});
+            print('logged out');
+          },
+          child: Icon(Icons.logout),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

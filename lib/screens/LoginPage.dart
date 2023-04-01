@@ -2,11 +2,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mashov/screens/AdminPage.dart';
+import 'package:mashov/screens/AnswerQuestions.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 String userName = "";
 String password = "";
 final _auth = FirebaseAuth.instance;
+String error = '';
 
 class LoginPage extends StatefulWidget {
   static String id = 'login_screen';
@@ -86,15 +88,29 @@ class _LoginPageState extends State<LoginPage> {
                     final user = await _auth.signInWithEmailAndPassword(
                         email: userName, password: password);
 
-                    if (user != null)
-                      Navigator.pushNamed(context, AdminPage.id);
+                    if (user != null && userName == 'ishay7@gmail.com') {
+                      print('admins cant answer questions, thats cheating');
+                      setState(() {
+                        showSpinner = false;
+                      });
+                    } else
+                      Navigator.pushNamed(context, AnswerQuestions.id);
                     showSpinner = false;
                   } catch (e) {
+                    int ch = e.toString().indexOf(']');
+                    error = e.toString().substring(ch + 1);
                     print(e);
+                    setState(() {
+                      showSpinner = false;
+                    });
                   }
                 },
                 text: 'Log In',
                 color: Colors.blue,
+              ),
+              Text(
+                ('$error'),
+                style: TextStyle(color: Colors.grey, fontSize: 20),
               ),
             ],
           ),

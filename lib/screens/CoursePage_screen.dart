@@ -1,18 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../Classes/Course.dart';
+import 'package:mashov/screens/HomePage.dart';
 
-User? loggedInUser;
-final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 late int tappedIDX;
 late int index;
 int courseId = 0;
 
 final _auth = FirebaseAuth.instance;
-
+User? loggedInUser;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 void getCurrentUser() async {
   try {
     final user = await _auth.currentUser;
@@ -189,32 +187,46 @@ class _CoursePageState extends State<CoursePage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          try {
-            int courseLength = await getCoursesLength();
-            print(courseLength);
-            var dataToSave = <String, dynamic>{
-              'name': '',
-              'professor': '',
-              'id': courseLength
-            };
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              _auth.signOut();
+              print('logged out');
+              Navigator.pushNamed(context, HomePage.id);
+            },
+            child: Icon(Icons.logout),
+            backgroundColor: Colors.orangeAccent,
+          ),
+          FloatingActionButton(
+            onPressed: () async {
+              try {
+                int courseLength = await getCoursesLength();
+                print(courseLength);
+                var dataToSave = <String, dynamic>{
+                  'name': '',
+                  'professor': '',
+                  'id': courseLength
+                };
 
-            var scores = <String, dynamic>{
-              'name': '',
-              'id': courseLength,
-              'scores': null,
-            };
-            setState(() {
-              _firestore.collection('courses').add(dataToSave);
-              _firestore.collection('scores').add(scores);
-            });
-          } catch (e) {
-            print(e);
-          }
-        },
-        backgroundColor: Colors.cyan.shade700,
-        child: const Icon(Icons.add),
+                var scores = <String, dynamic>{
+                  'name': '',
+                  'id': courseLength,
+                  'scores': null,
+                };
+                setState(() {
+                  _firestore.collection('courses').add(dataToSave);
+                  _firestore.collection('scores').add(scores);
+                });
+              } catch (e) {
+                print(e);
+              }
+            },
+            backgroundColor: Colors.cyan.shade700,
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

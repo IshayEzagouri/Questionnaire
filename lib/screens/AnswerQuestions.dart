@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mashov/screens/HomePage.dart';
 import 'package:mashov/screens/test.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 // TODO one big problem with the scoring systems. when use starts scoring, the array isn't unique to that chosen course
 // need to decide if the question should pick up from where user left which will be a lot of work, or requiring the user to finish all questions in order for the ratings to be saved.
 
@@ -95,6 +96,21 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
       _currentIndex++;
       print(_currentIndex);
     });
+  }
+
+  final _auth = FirebaseAuth.instance;
+  User? loggedInUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  void getCurrentUser() async {
+    try {
+      final user = await _auth.currentUser;
+      if (user != null) {
+        loggedInUser = user;
+        print(loggedInUser!.email);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -228,6 +244,16 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _auth.signOut();
+          print('logged out');
+          Navigator.pushNamed(context, HomePage.id);
+        },
+        child: Icon(Icons.logout),
+        backgroundColor: Colors.orangeAccent,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
