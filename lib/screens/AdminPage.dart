@@ -6,6 +6,7 @@ import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:mashov/screens/CoursePage_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mashov/screens/HomePage.dart';
+import 'package:mashov/screens/test.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -75,7 +76,8 @@ class _AdminPageState extends State<AdminPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('AppBar'),
+        automaticallyImplyLeading: false,
+        title: Text('Admin Panel'),
       ),
       backgroundColor: animation.value,
       body: Column(
@@ -193,7 +195,7 @@ class _AdminPageState extends State<AdminPage>
           onPressed: () {
             _auth.signOut();
             print('logged out');
-            Navigator.pushNamed(context, HomePage.id);
+            Navigator.pushNamed(context, test.id);
           },
           child: Icon(Icons.logout),
           backgroundColor: Colors.orangeAccent,

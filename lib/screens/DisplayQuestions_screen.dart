@@ -1,3 +1,4 @@
+import 'package:mashov/screens/AdminPage.dart';
 import 'package:mashov/screens/HomePage.dart';
 import 'package:flutter/material.dart';
 import '../Classes/Questions.dart';
@@ -43,6 +44,11 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pushNamed(context, AdminPage.id);
+            }),
         actions: [],
         title: const Text('Question Bank'),
       ),

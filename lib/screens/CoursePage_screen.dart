@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mashov/screens/AdminPage.dart';
 import 'package:mashov/screens/HomePage.dart';
 
 late int tappedIDX;
@@ -23,9 +24,15 @@ void getCurrentUser() async {
   }
 }
 
+Future<int> getCollectionSize(String collectionName) async {
+  QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection(collectionName).get();
+  return snapshot.docs.length;
+}
+
 void updateScoresDocName(String name) {
   _firestore
-      .collection('scores')
+      .collection('questions')
       .where('id', isEqualTo: courseId)
       .get()
       .then((QuerySnapshot querySnapshot) {
@@ -81,6 +88,11 @@ class _CoursePageState extends State<CoursePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pushNamed(context, AdminPage.id);
+            }),
         title: Text('Course List'),
       ),
       body: SafeArea(
@@ -201,6 +213,9 @@ class _CoursePageState extends State<CoursePage> {
           ),
           FloatingActionButton(
             onPressed: () async {
+              int questionsLength = await getCollectionSize('questions');
+              List<int> list = List.generate(
+                  await getCollectionSize('questions'), (index) => 0);
               try {
                 int courseLength = await getCoursesLength();
                 print(courseLength);
@@ -213,7 +228,7 @@ class _CoursePageState extends State<CoursePage> {
                 var scores = <String, dynamic>{
                   'name': '',
                   'id': courseLength,
-                  'scores': null,
+                  'scores': list,
                 };
                 setState(() {
                   _firestore.collection('courses').add(dataToSave);

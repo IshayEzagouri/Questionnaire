@@ -1,8 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:mashov/screens/AdminPage.dart';
+import 'package:mashov/screens/AnswerQuestions.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
+String error = '';
 String userName = "";
 String password = "";
 final _auth = FirebaseAuth.instance;
@@ -83,23 +86,28 @@ class _RegistrationState extends State<Registration> {
                     showSpinner = true;
                   });
                   try {
-                    final credential =
-                        await _auth.createUserWithEmailAndPassword(
-                      email: userName,
-                      password: password,
-                    );
-                  } on FirebaseAuthException catch (e) {
-                    if (e.code == 'weak-password') {
-                      print('The password provided is too weak.');
-                    } else if (e.code == 'email-already-in-use') {
-                      print('The account already exists for that email.');
+                    final user = await _auth.createUserWithEmailAndPassword(
+                        email: userName, password: password);
+                    if (user != null &&
+                        user.user!.email != 'ishay7@gmail.com') {
+                      Navigator.pushNamed(context, AnswerQuestions.id);
+                    } else if (user.user!.email == 'ishay7@gmail.com') {
+                      Navigator.pushNamed(context, AdminPage.id);
                     }
                   } catch (e) {
-                    print(e);
+                    setState(() {
+                      showSpinner = false;
+                    });
+                    int ch = e.toString().indexOf(']');
+                    error = e.toString().substring(ch + 1);
                   }
                 },
                 text: 'Register',
                 color: Colors.blue,
+              ),
+              Text(
+                ('$error'),
+                style: TextStyle(color: Colors.grey, fontSize: 20),
               ),
             ],
           ),

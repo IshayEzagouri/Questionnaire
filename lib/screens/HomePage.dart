@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 bool SignedIN = false;
+bool cheating = false;
 
 class HomePage extends StatefulWidget {
   static String id = 'home_page';
@@ -40,6 +41,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    cheating = false;
     getCurrentUser();
     controller = AnimationController(
       vsync: this,
@@ -140,11 +142,28 @@ class _HomePageState extends State<HomePage>
                       ),
                       shape: StadiumBorder()),
                   onPressed: () {
-                    print(SignedIN);
-                    if (!SignedIN)
-                      Navigator.pushNamed(context, LoginPage.id);
-                    else
-                      Navigator.pushNamed(context, AdminPage.id);
+                    if (!SignedIN) {
+                      Navigator.pushNamed(
+                        context,
+                        LoginPage.id,
+                        arguments: {'isFromQuestionnaire': true},
+                      );
+                    } else if (SignedIN &&
+                        _auth.currentUser!.email != 'ishay7@gmail.com') {
+                      Navigator.pushNamed(
+                        context,
+                        AnswerQuestions.id,
+                        arguments: {
+                          'from': 'start_questionnaire'
+                        }, // pass a parameter indicating which button was pressed
+                      );
+                    } else if (SignedIN && //TODO need to implement roles and change contidion to the role of the user
+                        _auth.currentUser!.email == 'ishay7@gmail.com') {
+                      setState(() {
+                        cheating = true;
+                      });
+                      print('thats cheating :)');
+                    }
                   },
                   child: Text(
                     'Start Questionnaire',
@@ -156,31 +175,43 @@ class _HomePageState extends State<HomePage>
                 ),
               ],
             ),
-            Row(
-              children: <Widget>[
-                Container(
-                  child: Image.asset('images/logo.png'),
-                  height: controller.value * 55,
-                ),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                      side: BorderSide(
-                        width: 2,
-                        color: Colors.black87,
-                      ),
-                      shape: StadiumBorder()),
-                  onPressed: () {
-                    Navigator.pushNamed(context, Registration.id);
-                  },
-                  child: Text(
-                    'Register',
-                    style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black),
+            Visibility(
+              visible: !SignedIN,
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    child: Image.asset('images/logo.png'),
+                    height: controller.value * 55,
                   ),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          width: 2,
+                          color: Colors.black87,
+                        ),
+                        shape: StadiumBorder()),
+                    onPressed: () {
+                      Navigator.pushNamed(context, Registration.id);
+                    },
+                    child: Text(
+                      'Register',
+                      style: TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Center(
+              child: Visibility(
+                visible: cheating,
+                child: Text(
+                  'thats cheating 😁',
+                  style: (TextStyle(fontSize: 20)),
                 ),
-              ],
+              ),
             ),
             SizedBox(
               height: 48.0,

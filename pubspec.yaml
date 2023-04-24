@@ -42,6 +42,7 @@ dependencies:
   cloud_firestore: ^4.4.5
   flutter_rating_bar: ^4.0.1
   flutter_screenutil: ^5.7.0
+  modal_progress_hud_nsn: ^0.3.0
 
 dev_dependencies:
   flutter_test:

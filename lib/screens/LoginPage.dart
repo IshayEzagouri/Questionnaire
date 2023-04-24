@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mashov/screens/AdminPage.dart';
 import 'package:mashov/screens/AnswerQuestions.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 String userName = "";
 String password = "";
@@ -23,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+
     Firebase.initializeApp().whenComplete(() {
       setState(() {});
     });
@@ -87,14 +88,12 @@ class _LoginPageState extends State<LoginPage> {
                   try {
                     final user = await _auth.signInWithEmailAndPassword(
                         email: userName, password: password);
-
-                    if (user != null && userName == 'ishay7@gmail.com') {
-                      print('admins cant answer questions, thats cheating');
-                      setState(() {
-                        showSpinner = false;
-                      });
-                    } else
+                    if (user != null &&
+                        user.user!.email != 'ishay7@gmail.com') {
                       Navigator.pushNamed(context, AnswerQuestions.id);
+                    } else if (user.user!.email == 'ishay7@gmail.com') {
+                      Navigator.pushNamed(context, AdminPage.id);
+                    }
                     showSpinner = false;
                   } catch (e) {
                     int ch = e.toString().indexOf(']');

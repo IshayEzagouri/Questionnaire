@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mashov/screens/HomePage.dart';
+import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // TODO one big problem with the scoring systems. when use starts scoring, the array isn't unique to that chosen course
@@ -123,17 +124,13 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              ratingBarVisibility = false;
-              Navigator.of(context).pop();
-            }),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
         title: Text('Questionnaire'),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'Choose a Course',
@@ -194,13 +191,16 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               }),
           _questions.isEmpty
               ? CircularProgressIndicator()
-              : Visibility(
-                  visible: ratingBarVisibility,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 12, right: 12),
-                    child: Text(
-                      '${_questions[_currentIndex]['text']}',
-                      style: TextStyle(fontSize: 20),
+              : Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Visibility(
+                    visible: ratingBarVisibility,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 12, right: 12),
+                      child: Text(
+                        '${_questions[_currentIndex]['text']}',
+                        style: TextStyle(fontSize: 20),
+                      ),
                     ),
                   ),
                 ),
@@ -236,19 +236,13 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               },
             ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, test.id);
-            },
-            child: (Text('test')),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _auth.signOut();
           print('logged out');
-          Navigator.pushNamed(context, HomePage.id);
+          Navigator.pushNamed(context, test.id);
         },
         child: Icon(Icons.logout),
         backgroundColor: Colors.orangeAccent,
