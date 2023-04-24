@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,6 +95,15 @@ class _RegistrationState extends State<Registration> {
                     } else if (user.user!.email == 'ishay7@gmail.com') {
                       Navigator.pushNamed(context, AdminPage.id);
                     }
+
+                    FirebaseFirestore.instance
+                        .collection('Users')
+                        .doc(user.user!.uid)
+                        .set({
+                      'email': userName,
+                      'password': password,
+                      'role': 'user',
+                    });
                   } catch (e) {
                     setState(() {
                       showSpinner = false;

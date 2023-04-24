@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -86,22 +87,37 @@ class _LoginPageState extends State<LoginPage> {
                     showSpinner = true;
                   });
                   try {
-                    final user = await _auth.signInWithEmailAndPassword(
-                        email: userName, password: password);
-                    if (user != null &&
-                        user.user!.email != 'ishay7@gmail.com') {
-                      Navigator.pushNamed(context, AnswerQuestions.id);
-                    } else if (user.user!.email == 'ishay7@gmail.com') {
-                      Navigator.pushNamed(context, AdminPage.id);
+                    final userCredential =
+                        await _auth.signInWithEmailAndPassword(
+                            email: userName, password: password);
+                    final user = userCredential.user;
+                    final uid = user!.uid;
+                    print(uid);
+                    final userDocRef =
+                        FirebaseFirestore.instance.collection('Users').doc(uid);
+                    final userDocSnapshot = await userDocRef.get();
+                    if (userDocSnapshot.exists) {
+                      final userDocData = userDocSnapshot.data();
+                      if (userDocData != null &&
+                          userDocData.containsKey('role')) {
+                        final role = userDocData['role'];
+                        if (role == 'user') {
+                          Navigator.pushNamed(context, AnswerQuestions.id);
+                        } else if (role == 'admin') {
+                          Navigator.pushNamed(context, AdminPage.id);
+                        }
+                      }
+                    } else {
+                      setState(() {
+                        showSpinner = false;
+                      });
+                      print(userDocSnapshot.exists);
                     }
-                    showSpinner = false;
                   } catch (e) {
-                    int ch = e.toString().indexOf(']');
-                    error = e.toString().substring(ch + 1);
-                    print(e);
                     setState(() {
                       showSpinner = false;
                     });
+                    print(e);
                   }
                 },
                 text: 'Log In',
