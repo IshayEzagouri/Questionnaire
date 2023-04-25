@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage>
                           'from': 'start_questionnaire'
                         }, // pass a parameter indicating which button was pressed
                       );
-                    } else if (SignedIN && //TODO need to implement roles and change contidion to the role of the user
+                    } else if (SignedIN &&
                         _auth.currentUser!.email == 'ishay7@gmail.com') {
                       setState(() {
                         cheating = true;

@@ -5,11 +5,10 @@ import 'package:mashov/screens/HomePage.dart';
 import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// TODO one big problem with the scoring systems. when use starts scoring, the array isn't unique to that chosen course
-// need to decide if the question should pick up from where user left which will be a lot of work, or requiring the user to finish all questions in order for the ratings to be saved.
 
-//TODO create a login page for regular users and verify that they can score each course only once. their rating need to add to the total amount of the scoring array's values, NOT REPLACE THEM!
-
+//TODO the questions are not showing up in the correct order by id--done but check regardless
+//TODO if there are no questions, i shouldn't be able to see the rating bar
+//TODO when i delete the questions i need to delete the scores slot for them
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
@@ -66,8 +65,10 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   int _selectedButtonIndex = -1;
 
   void _fetchQuestions() async {
-    QuerySnapshot querySnapshot =
-        await FirebaseFirestore.instance.collection('questions').get();
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('questions')
+        .orderBy('id')
+        .get();
     setState(() {
       _questions = querySnapshot.docs
           .map((doc) => {'id': doc['id'], 'text': doc['text']})
@@ -228,7 +229,6 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 if (_currentIndex < _questions.length - 1)
                   _showNextQuestion();
                 else {
-                  //TODO do something here-questions over
                   // scoreList.clear();
                   ratingBarVisibility = false;
                   print('visibilty turned false');
