@@ -141,8 +141,8 @@ class _CoursePageState extends State<CoursePage> {
                                         tappedIDX = index;
                                         print(index);
                                       },
-                                      onChanged: (value) {
-                                        _firestore
+                                      onChanged: (value) async {
+                                        await _firestore
                                             .collection('courses')
                                             .doc(documents[index].id)
                                             .update({'name': value});
@@ -185,6 +185,12 @@ class _CoursePageState extends State<CoursePage> {
                                 .collection('courses')
                                 .doc(documents[index].id)
                                 .delete();
+
+                            await _firestore
+                                .collection('scores')
+                                .doc(documents[index].id)
+                                .delete();
+
                             setState(() {});
                           },
                           icon: Icon(Icons.delete),
@@ -225,14 +231,20 @@ class _CoursePageState extends State<CoursePage> {
                   'id': courseLength
                 };
 
+                var courseRef =
+                    await _firestore.collection('courses').add(dataToSave);
                 var scores = <String, dynamic>{
                   'name': '',
                   'id': courseLength,
                   'scores': list,
                 };
+                var scoresRef = await _firestore
+                    .collection('scores')
+                    .doc(courseRef.id)
+                    .set(scores);
+
                 setState(() {
-                  _firestore.collection('courses').add(dataToSave);
-                  _firestore.collection('scores').add(scores);
+                  // do whatever you need to do after adding the documents
                 });
               } catch (e) {
                 print(e);
