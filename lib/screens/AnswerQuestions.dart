@@ -6,9 +6,11 @@ import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-//TODO the questions are not showing up in the correct order by id--done but check regardless
+//TODO user can only vote once
+
+//TODO scores are added to all the questions not the specific one im answering--V done
+//TODO scores array needs to be in the same length as the questions
 //TODO if there are no questions, i shouldn't be able to see the rating bar
-//TODO when i delete the questions i need to delete the scores slot for them
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
@@ -222,7 +224,6 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 print('question index $_currentIndex');
                 setState(() {
                   scoreList.add(rating);
-                  updateScoresArr(scoreList);
                 });
 
                 print(rating);
@@ -231,6 +232,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 else {
                   // scoreList.clear();
                   ratingBarVisibility = false;
+                  updateScoresArr(scoreList);
                   print('visibilty turned false');
                 }
               },

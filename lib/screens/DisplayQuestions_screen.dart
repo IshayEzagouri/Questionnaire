@@ -8,11 +8,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 User? loggedInUser;
 final _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-CollectionReference collectionReference = _firestore.collection('questions');
+
+final CollectionReference questionsCollectionReference =
+    _firestore.collection('questions');
+final CollectionReference scoresCollectionReference =
+    _firestore.collection('scores');
 List<Question> questions = [];
 String questionText = '';
 late int tappedIDX;
 late int index;
+
+Future<void> deleteDocument(
+    int index, String collection, List<DocumentSnapshot> documents) async {
+  await _firestore.collection(collection).doc(documents[index].id).delete();
+}
+
+Future<void> sortDocumentID(int id, String collection) async {
+  final collectionReference = FirebaseFirestore.instance.collection(collection);
+
+  // Update the IDs of subsequent documents
+  final querySnapshot = await collectionReference.orderBy('id').get();
+  final batch = FirebaseFirestore.instance.batch();
+  int index = 0;
+
+  querySnapshot.docs.forEach((doc) {
+    final docId = doc.get('id');
+    if (docId != null) {
+      if (docId != index) {
+        batch.update(doc.reference, {'id': index});
+      }
+      index++;
+    }
+  });
+
+  await batch.commit();
+}
+
+Future<void> addZeroToScores() async {
+  final collectionRef = FirebaseFirestore.instance.collection('scores');
+  final querySnapshot = await collectionRef.get();
+
+  for (final docSnapshot in querySnapshot.docs) {
+    final scoresList = docSnapshot.get('scores') as List<dynamic>;
+    scoresList.add(0);
+    await docSnapshot.reference.update({'scores': scoresList});
+  }
+}
 
 void getCurrentUser() async {
   try {
@@ -98,10 +139,10 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
                         padding: EdgeInsets.only(top: 27),
                         child: IconButton(
                           onPressed: () async {
-                            await _firestore
-                                .collection('questions')
-                                .doc(documents[index].id)
-                                .delete();
+                            deleteDocument(index, 'scores', documents);
+                            deleteDocument(index, 'questions', documents);
+                            sortDocumentID(index, 'scores');
+                            sortDocumentID(index, 'questions');
                             setState(() {});
                           },
                           icon: Icon(Icons.delete),
@@ -125,7 +166,8 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
               try {
                 var dataToSave = <String, dynamic>{'id': index, 'text': ''};
                 setState(() {
-                  collectionReference.add(dataToSave);
+                  questionsCollectionReference.add(dataToSave);
+                  addZeroToScores();
                 });
               } catch (e) {
                 print(e);
