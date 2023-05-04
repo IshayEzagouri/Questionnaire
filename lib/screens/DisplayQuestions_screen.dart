@@ -173,10 +173,18 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
           },
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-          child: Row(
+      floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          FloatingActionButton(
+            onPressed: () {
+              _auth.signOut();
+              print('logged out');
+              Navigator.pushNamed(context, HomePage.id);
+            },
+            child: Icon(Icons.logout),
+            backgroundColor: Colors.orangeAccent,
+          ),
           FloatingActionButton(
             onPressed: () async {
               try {
@@ -193,17 +201,7 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
             child: const Icon(Icons.add),
           ),
         ],
-      )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _auth.signOut();
-          print('logged out');
-          Navigator.pushNamed(context, HomePage.id);
-        },
-        child: Icon(Icons.logout),
-        backgroundColor: Colors.orangeAccent,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

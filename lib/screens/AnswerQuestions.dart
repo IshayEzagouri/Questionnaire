@@ -23,6 +23,7 @@ class AnswerQuestions extends StatefulWidget {
 
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
+  Map<String, bool> _ratedCourses = {};
 
   Future<void> fetchScoreList() async {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
@@ -77,7 +78,27 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
     });
   }
 
-  void getTappedCourseID(var list) {
+  void setRatedCourse(int courseId) async {
+    String? courseName = await getCourseDocID(courseId);
+    if (courseName != null) {
+      setState(() {
+        _ratedCourses[courseName] = true;
+      });
+    }
+  }
+
+  Future<String?> getCourseDocID(int courseId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('courses')
+        .where('id', isEqualTo: courseId)
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first.id;
+    }
+    return null;
+  }
+
+  void getTappedCourseIDFieldValue(var list) {
     _firestore
         .collection('courses')
         .doc(list)
@@ -151,40 +172,50 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                       scrollDirection: Axis.horizontal,
                       itemCount: documents.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return Row(
-                          children: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor:
-                                    _selectedButtonIndex == index &&
-                                            ratingBarVisibility == true
-                                        ? Colors.orangeAccent
-                                        : Colors.lightBlue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
+                        final courseId = documents[index].id;
+                        if (_ratedCourses.containsKey(
+                                courseId) && //Hides the button after rating is over.
+                            _ratedCourses[courseId]!) {
+                          // The user has rated this course, don't show the button
+                          return SizedBox.shrink();
+                        } else {
+                          // The user has not rated this course, show the button
+                          return Row(
+                            children: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  backgroundColor:
+                                      _selectedButtonIndex == index &&
+                                              ratingBarVisibility == true
+                                          ? Colors.orangeAccent
+                                          : Colors.lightBlue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
                                 ),
-                              ),
-                              onPressed: () {
-                                _currentIndex = 0;
-                                scoreList.clear();
-                                getTappedCourseID(documents[index].id);
+                                onPressed: () {
+                                  _currentIndex = 0;
+                                  scoreList.clear();
+                                  getTappedCourseIDFieldValue(courseId);
 
-                                setState(() {
-                                  _selectedButtonIndex = index;
-                                  ratingBarVisibility = true;
-                                });
-                              },
-                              child: Text(
-                                documents[index]['name'],
-                                style: TextStyle(
+                                  setState(() {
+                                    _selectedButtonIndex = index;
+                                    ratingBarVisibility = true;
+                                  });
+                                },
+                                child: Text(
+                                  documents[index]['name'],
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 25,
-                                    fontWeight: FontWeight.w300),
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 25),
-                          ],
-                        );
+                              SizedBox(width: 25),
+                            ],
+                          );
+                        }
                       },
                     ),
                   );
@@ -230,6 +261,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   _showNextQuestion();
                 else {
                   // scoreList.clear();
+                  setRatedCourse(
+                      tappedCourseID); // Hides the button after rating is over;
                   ratingBarVisibility = false;
                   updateScoresArr(scoreList);
                   print('visibilty turned false');

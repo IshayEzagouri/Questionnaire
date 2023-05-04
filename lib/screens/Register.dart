@@ -89,11 +89,8 @@ class _RegistrationState extends State<Registration> {
                   try {
                     final user = await _auth.createUserWithEmailAndPassword(
                         email: userName, password: password);
-                    if (user != null &&
-                        user.user!.email != 'ishay7@gmail.com') {
+                    if (user != null) {
                       Navigator.pushNamed(context, AnswerQuestions.id);
-                    } else if (user.user!.email == 'ishay7@gmail.com') {
-                      Navigator.pushNamed(context, AdminPage.id);
                     }
 
                     FirebaseFirestore.instance

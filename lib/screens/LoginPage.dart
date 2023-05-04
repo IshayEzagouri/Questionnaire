@@ -117,7 +117,8 @@ class _LoginPageState extends State<LoginPage> {
                     setState(() {
                       showSpinner = false;
                     });
-                    print(e);
+                    int ch = e.toString().indexOf(']');
+                    error = e.toString().substring(ch + 1);
                   }
                 },
                 text: 'Log In',
