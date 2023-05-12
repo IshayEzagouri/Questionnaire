@@ -16,6 +16,7 @@ bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
 bool ratingBarVisibility = false;
+String headlineText = 'Choose a course';
 
 class AnswerQuestions extends StatefulWidget {
   static String id = 'answer_questions';
@@ -25,7 +26,7 @@ class AnswerQuestions extends StatefulWidget {
 
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
-
+  String? uid = '';
   Future<void> addUserToRatedList(String courseId, String userId) async {
     print('addUserToRatedList called');
     try {
@@ -171,63 +172,76 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Choose a Course',
+            headlineText,
             style: TextStyle(fontSize: 20),
           ),
           FutureBuilder<QuerySnapshot>(
-              future: _firestore.collection('courses').orderBy('name').get(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.data?.docs != null) {
-                  // TODO i can create a map of bools for the courses and add a condition here.
-                  List<DocumentSnapshot> documents = snapshot.data!.docs;
-                  return SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      padding: EdgeInsets.only(left: 40, right: 40),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: documents.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Row(
-                          children: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor:
-                                    _selectedButtonIndex == index &&
-                                            ratingBarVisibility == true
-                                        ? Colors.orangeAccent
-                                        : Colors.lightBlue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                              ),
-                              onPressed: () {
-                                _currentIndex = 0;
-                                scoreList.clear();
-                                getTappedCourseID(documents[index].id);
+            future: _firestore.collection('courses').orderBy('name').get(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasData) {
+                final documents = snapshot.data!.docs;
+                return SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(left: 40, right: 40),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: documents.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final course = documents[index];
+                      final alreadyRatedUsersId = List<String>.from(
+                          course['alreadyRatedUsersID'] ?? []);
 
-                                setState(() {
-                                  _selectedButtonIndex = index;
-                                  ratingBarVisibility = true;
-                                });
-                              },
-                              child: Text(
-                                documents[index]['name'],
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w300),
+                      if (alreadyRatedUsersId.contains(loggedInUser?.uid)) {
+                        headlineText = 'Thanks for your input';
+
+                        // The current user has already rated this course, don't show the button.
+                        return const SizedBox.shrink();
+                      }
+
+                      return Row(
+                        children: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: _selectedButtonIndex == index &&
+                                      ratingBarVisibility == true
+                                  ? Colors.orangeAccent
+                                  : Colors.lightBlue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
                               ),
                             ),
-                            SizedBox(width: 25),
-                          ],
-                        );
-                      },
-                    ),
-                  );
-                }
+                            onPressed: () {
+                              _currentIndex = 0;
+                              scoreList.clear();
+                              getTappedCourseID(documents[index].id);
+
+                              setState(() {
+                                _selectedButtonIndex = index;
+                                ratingBarVisibility = true;
+                              });
+                            },
+                            child: Text(
+                              course['name'],
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w300),
+                            ),
+                          ),
+                          SizedBox(width: 25),
+                        ],
+                      );
+                    },
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
                 return Center(child: CircularProgressIndicator());
-              }),
+              }
+            },
+          ),
           _questions.isEmpty
               ? CircularProgressIndicator()
               : Padding(
@@ -268,7 +282,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   // scoreList.clear();
                   _firestore.collection('courses');
                   getCurrentUser();
-                  String? uid = await getUserId(loggedInUser);
+                  uid = await getUserId(loggedInUser);
                   print(uid);
                   if (uid != null) {
                     await addUserToRatedList(
