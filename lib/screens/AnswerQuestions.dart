@@ -9,7 +9,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 //TODO user can only vote once
 //TODO scores are added to all the questions not the specific one im answering--V done
 //TODO scores array needs to be in the same length as the questions
-//TODO if there are no questions, i shouldn't be able to see the rating bar
+//TODO if there are no questions, i shouldn't be able to see the rating baraz
+//TODO i need every document inside the users collection to have an array of map<string,bool>. inside the map i need to have the course id and true if finished rating.i will need to add to the map every time a course has been created, and vice versa.  then the future builder will need to have a condition and to only build buttons for courses that have a false value inside the array of map<string,bool> in the users collection.
+
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
@@ -23,12 +25,36 @@ class AnswerQuestions extends StatefulWidget {
 
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
-  Map<String, bool> _ratedCourses = {};
+
+  Future<void> addUserToRatedList(String courseId, String userId) async {
+    print('addUserToRatedList called');
+    try {
+      final courseDoc = _firestore.collection('courses').doc(courseId);
+      final courseSnapshot = await courseDoc.get();
+      if (courseSnapshot.exists) {
+        final courseData = courseSnapshot.data()!;
+        List<String> alreadyRatedUsersID =
+            List<String>.from(courseData['alreadyRatedUsersID']);
+        if (!alreadyRatedUsersID.contains(userId)) {
+          alreadyRatedUsersID.add(userId);
+          await courseDoc.update({'alreadyRatedUsersID': alreadyRatedUsersID});
+          print('User added to rated list for course $courseId');
+        } else {
+          print('User $userId already in rated list for course $courseId');
+        }
+      } else {
+        print('Course $courseId does not exist');
+      }
+    } catch (e) {
+      print('Error adding user to rated list: $e');
+    }
+  }
 
   Future<void> fetchScoreList() async {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
         .collection('scores')
-        .where('id', isEqualTo: tappedCourseID)
+        .doc(tappedCourseID)
+        .collection('scoreList')
         .get();
 
     if (snapshot != null && snapshot.docs.isNotEmpty) {
@@ -44,7 +70,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   void updateScoresArr(List<double> scoreList) {
     _firestore
         .collection('scores')
-        .where('id', isEqualTo: tappedCourseID)
+        .doc(tappedCourseID)
+        .collection('scoreList')
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) async {
@@ -56,6 +83,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         }
         await FirebaseFirestore.instance
             .collection('scores')
+            .doc(tappedCourseID)
+            .collection('scoreList')
             .doc(doc.id)
             .update({'scores': newScores});
       });
@@ -78,42 +107,20 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
     });
   }
 
-  void setRatedCourse(int courseId) async {
-    String? courseName = await getCourseDocID(courseId);
-    if (courseName != null) {
-      setState(() {
-        _ratedCourses[courseName] = true;
-      });
-    }
-  }
-
-  Future<String?> getCourseDocID(int courseId) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('courses')
-        .where('id', isEqualTo: courseId)
-        .get();
-    if (snapshot.docs.isNotEmpty) {
-      return snapshot.docs.first.id;
-    }
-    return null;
-  }
-
-  void getTappedCourseIDFieldValue(var list) {
+  void getTappedCourseID(var list) {
     _firestore
         .collection('courses')
         .doc(list)
         .get()
         .then((DocumentSnapshot snapshot) {
-      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-      int id = data['id'] as int;
-
+      String id = snapshot.id;
       tappedCourseID = id;
     }).catchError((error) {
       print('Error getting document: $error');
     });
   }
 
-  int tappedCourseID = -1;
+  String tappedCourseID = '';
 
   void _showNextQuestion() {
     setState(() {
@@ -134,6 +141,14 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
       }
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<String?> getUserId(User? user) async {
+    if (user != null) {
+      return user.uid;
+    } else {
+      return null;
     }
   }
 
@@ -164,6 +179,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.data?.docs != null) {
+                  // TODO i can create a map of bools for the courses and add a condition here.
                   List<DocumentSnapshot> documents = snapshot.data!.docs;
                   return SizedBox(
                     height: 100,
@@ -172,50 +188,40 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                       scrollDirection: Axis.horizontal,
                       itemCount: documents.length,
                       itemBuilder: (BuildContext context, int index) {
-                        final courseId = documents[index].id;
-                        if (_ratedCourses.containsKey(
-                                courseId) && //Hides the button after rating is over.
-                            _ratedCourses[courseId]!) {
-                          // The user has rated this course, don't show the button
-                          return SizedBox.shrink();
-                        } else {
-                          // The user has not rated this course, show the button
-                          return Row(
-                            children: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor:
-                                      _selectedButtonIndex == index &&
-                                              ratingBarVisibility == true
-                                          ? Colors.orangeAccent
-                                          : Colors.lightBlue,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  _currentIndex = 0;
-                                  scoreList.clear();
-                                  getTappedCourseIDFieldValue(courseId);
-
-                                  setState(() {
-                                    _selectedButtonIndex = index;
-                                    ratingBarVisibility = true;
-                                  });
-                                },
-                                child: Text(
-                                  documents[index]['name'],
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w300,
-                                  ),
+                        return Row(
+                          children: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor:
+                                    _selectedButtonIndex == index &&
+                                            ratingBarVisibility == true
+                                        ? Colors.orangeAccent
+                                        : Colors.lightBlue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
                                 ),
                               ),
-                              SizedBox(width: 25),
-                            ],
-                          );
-                        }
+                              onPressed: () {
+                                _currentIndex = 0;
+                                scoreList.clear();
+                                getTappedCourseID(documents[index].id);
+
+                                setState(() {
+                                  _selectedButtonIndex = index;
+                                  ratingBarVisibility = true;
+                                });
+                              },
+                              child: Text(
+                                documents[index]['name'],
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w300),
+                              ),
+                            ),
+                            SizedBox(width: 25),
+                          ],
+                        );
                       },
                     ),
                   );
@@ -244,14 +250,13 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               minRating: 1,
               direction: Axis.horizontal,
               allowHalfRating: true,
-              itemCount: 5,
+              itemCount: _questions.length,
               itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
               itemBuilder: (context, _) => Icon(
                 Icons.star,
                 color: Colors.amber,
               ),
-              onRatingUpdate: (rating) {
-                print('question index $_currentIndex');
+              onRatingUpdate: (rating) async {
                 setState(() {
                   scoreList.add(rating);
                 });
@@ -261,9 +266,20 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   _showNextQuestion();
                 else {
                   // scoreList.clear();
-                  setRatedCourse(
-                      tappedCourseID); // Hides the button after rating is over;
-                  ratingBarVisibility = false;
+                  _firestore.collection('courses');
+                  getCurrentUser();
+                  String? uid = await getUserId(loggedInUser);
+                  print(uid);
+                  if (uid != null) {
+                    await addUserToRatedList(
+                        tappedCourseID, uid ?? 'default_user_id');
+                  } else {
+                    // Handle the case where uid is null
+                  }
+
+                  setState(() {
+                    ratingBarVisibility = false;
+                  });
                   updateScoresArr(scoreList);
                   print('visibilty turned false');
                 }

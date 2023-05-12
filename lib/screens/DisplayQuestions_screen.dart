@@ -119,9 +119,9 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
               return Text('error: ${snapshot.error}');
             }
 
-            // if (snapshot.connectionState == ConnectionState.waiting) {
-            //   return Text('Loading');
-            // }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Text('Loading');
+            }
             if (snapshot.data?.docs != null) {
               List<DocumentSnapshot> documents = snapshot.data!.docs;
               index = documents.length;

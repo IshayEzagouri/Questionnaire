@@ -228,7 +228,8 @@ class _CoursePageState extends State<CoursePage> {
                 var dataToSave = <String, dynamic>{
                   'name': '',
                   'professor': '',
-                  'id': courseLength
+                  'id': courseLength,
+                  'alreadyRatedUsersID': [],
                 };
 
                 var courseRef =
