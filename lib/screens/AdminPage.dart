@@ -6,7 +6,6 @@ import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:mashov/screens/CoursePage_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mashov/screens/HomePage.dart';
-import 'package:mashov/screens/test.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -45,6 +44,7 @@ class _AdminPageState extends State<AdminPage>
         var existingScores = doc['scores'] as List<dynamic>;
         var newScores = List.filled(existingScores.length, 0.0);
         doc.reference.update({'scores': newScores});
+        doc.reference.update({'usersVoted': 0});
       });
     });
   }
@@ -195,7 +195,7 @@ class _AdminPageState extends State<AdminPage>
           onPressed: () {
             _auth.signOut();
             print('logged out');
-            Navigator.pushNamed(context, test.id);
+            Navigator.pushNamed(context, HomePage.id);
           },
           child: Icon(Icons.logout),
           backgroundColor: Colors.orangeAccent,

@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mashov/screens/HomePage.dart';
+
 import 'package:mashov/screens/LoginPage.dart';
-import 'package:mashov/screens/test.dart';
+import 'package:mashov/screens/HomePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-//TODO user can only vote once
-//TODO scores are added to all the questions not the specific one im answering--V done
-//TODO scores array needs to be in the same length as the questions
-//TODO if there are no questions, i shouldn't be able to see the rating baraz
-//TODO i need every document inside the users collection to have an array of map<string,bool>. inside the map i need to have the course id and true if finished rating.i will need to add to the map every time a course has been created, and vice versa.  then the future builder will need to have a condition and to only build buttons for courses that have a false value inside the array of map<string,bool> in the users collection.
-
+//TODO buttons are still visible if user logs out and back in.
+//TODO on the first vote the usersvoted isn't updated and the button doesn't vanish
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
@@ -27,6 +23,22 @@ class AnswerQuestions extends StatefulWidget {
 class _AnswerQuestionsState extends State<AnswerQuestions> {
   List<double> scoreList = [];
   String? uid = '';
+
+  Future<bool> checkUserVotedOnAllCourses(String? userId) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('courses')
+        .where('alreadyRatedUsersID', arrayContains: userId)
+        .get();
+
+    return snapshot.docs.length == snapshot.size;
+  }
+
+  Future<void> incrementUsersVoted(String courseId) async {
+    final courseRef = _firestore.collection('scores').doc(courseId);
+
+    await courseRef.update({'usersVoted': FieldValue.increment(1)});
+  }
+
   Future<void> addUserToRatedList(String courseId, String userId) async {
     print('addUserToRatedList called');
     try {
@@ -66,29 +78,38 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
           .expand((i) => i)
           .toList();
     }
+
+    final courseDoc = _firestore.collection('courses').doc(tappedCourseID);
+    final courseSnapshot = await courseDoc.get();
+    if (courseSnapshot.exists) {
+      final courseData = courseSnapshot.data()!;
+      final alreadyRatedUsersID =
+          List<String>.from(courseData['alreadyRatedUsersID']);
+      if (alreadyRatedUsersID.contains(uid)) {
+        setState(() {
+          ratingBarVisibility = false;
+        });
+      }
+    }
   }
 
-  void updateScoresArr(List<double> scoreList) {
-    _firestore
-        .collection('scores')
-        .doc(tappedCourseID)
-        .collection('scoreList')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) async {
-        var existingScores = doc['scores'] as List<dynamic>;
-        var newScores =
-            List<double>.from(existingScores.map((score) => score.toDouble()));
-        for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
-          newScores[i] += scoreList[i];
-        }
-        await FirebaseFirestore.instance
-            .collection('scores')
-            .doc(tappedCourseID)
-            .collection('scoreList')
-            .doc(doc.id)
-            .update({'scores': newScores});
-      });
+  void updateScoresArr(List<double> scoreList) async {
+    var scoresRef = _firestore.collection('scores').doc(tappedCourseID);
+
+    await _firestore.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(scoresRef);
+      if (!snapshot.exists) {
+        throw Exception("Document does not exist!");
+      }
+
+      var existingScores = snapshot.get('scores') as List<dynamic>;
+      var newScores =
+          List<double>.from(existingScores.map((score) => score.toDouble()));
+      for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
+        newScores[i] += scoreList[i];
+      }
+
+      transaction.update(scoresRef, {'scores': newScores});
     });
   }
 
@@ -116,6 +137,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         .then((DocumentSnapshot snapshot) {
       String id = snapshot.id;
       tappedCourseID = id;
+      print(tappedCourseID);
     }).catchError((error) {
       print('Error getting document: $error');
     });
@@ -133,16 +155,17 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   final _auth = FirebaseAuth.instance;
   User? loggedInUser;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  void getCurrentUser() async {
+  Future<User?> getCurrentUser() async {
     try {
       final user = await _auth.currentUser;
       if (user != null) {
-        loggedInUser = user;
-        print(loggedInUser!.email);
+        print(user.email);
+        return user;
       }
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
   Future<String?> getUserId(User? user) async {
@@ -156,6 +179,13 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   @override
   void initState() {
     _fetchQuestions();
+    getCurrentUser().then((user) {
+      if (user != null) {
+        loggedInUser = user;
+        uid = user.uid;
+        addUserToRatedList(tappedCourseID, uid!);
+      }
+    });
     super.initState();
   }
 
@@ -192,11 +222,14 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                       final alreadyRatedUsersId = List<String>.from(
                           course['alreadyRatedUsersID'] ?? []);
 
-                      if (alreadyRatedUsersId.contains(loggedInUser?.uid)) {
+                      if (checkUserVotedOnAllCourses(loggedInUser?.uid) ==
+                          true) {
                         headlineText = 'Thanks for your input';
-
                         // The current user has already rated this course, don't show the button.
                         return const SizedBox.shrink();
+                        setState(() {});
+                      } else {
+                        headlineText = 'Choose a course';
                       }
 
                       return Row(
@@ -264,7 +297,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               minRating: 1,
               direction: Axis.horizontal,
               allowHalfRating: true,
-              itemCount: _questions.length,
+              //_questions.length
+              itemCount: 5,
               itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
               itemBuilder: (context, _) => Icon(
                 Icons.star,
@@ -273,20 +307,21 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               onRatingUpdate: (rating) async {
                 setState(() {
                   scoreList.add(rating);
+                  print(scoreList);
                 });
 
-                print(rating);
-                if (_currentIndex < _questions.length - 1)
+                if (_currentIndex < _questions.length - 1) {
                   _showNextQuestion();
-                else {
+                } else {
                   // scoreList.clear();
                   _firestore.collection('courses');
-                  getCurrentUser();
+                  loggedInUser = await getCurrentUser();
                   uid = await getUserId(loggedInUser);
-                  print(uid);
+                  print('uid is $uid');
                   if (uid != null) {
                     await addUserToRatedList(
                         tappedCourseID, uid ?? 'default_user_id');
+                    await incrementUsersVoted(tappedCourseID);
                   } else {
                     // Handle the case where uid is null
                   }
@@ -306,7 +341,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
         onPressed: () {
           _auth.signOut();
           print('logged out');
-          Navigator.pushNamed(context, test.id);
+          Navigator.pushNamed(context, HomePage.id);
         },
         child: Icon(Icons.logout),
         backgroundColor: Colors.orangeAccent,

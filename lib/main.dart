@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:mashov/screens/LoginPage.dart';
 import 'Classes/firebase_options.dart';
 import 'package:mashov/screens/DisplayQuestions_screen.dart';
-import 'screens/test.dart';
 import 'screens/HomePage.dart';
 import 'screens/AnswerQuestions.dart';
 import 'screens/Register.dart';
@@ -36,16 +35,15 @@ class MyApp extends StatelessWidget {
               bottom: Radius.circular(35),
             )),
           )),
-      initialRoute: test.id,
+      initialRoute: HomePage.id,
       routes: {
         Registration.id: (context) => Registration(),
         AnswerQuestions.id: (context) => AnswerQuestions(),
-        HomePage.id: (context) => HomePage(),
         LoginPage.id: (context) => LoginPage(),
         AdminPage.id: (context) => AdminPage(),
         DisplayQuestions.id: (context) => DisplayQuestions(),
         CoursePage.id: (context) => CoursePage(),
-        test.id: (context) => test(),
+        HomePage.id: (context) => HomePage(),
       },
     );
   }
