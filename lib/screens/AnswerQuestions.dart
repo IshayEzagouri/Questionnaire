@@ -6,8 +6,6 @@ import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/HomePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-//TODO buttons are still visible if user logs out and back in.
-//TODO on the first vote the usersvoted isn't updated and the button doesn't vanish
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 int courseId = 0;
