@@ -1,17 +1,16 @@
-# mashov
+This app is a questionnaire i developped for the Kinneret academy college.
+The app offers a simple way for teachers to get feedback on their courses.
+Teachers can add/remove questions and courses+clear all accumulated scores. 
+The users then need to rate each course from 1-5, and they can do it only once. 
 
-A new Flutter project.
+There are 2 type of users-admins and regular users.
+for now the only way to sign up as an admin is via firestore for security reasons.
+However, the registration page still allows students/regular users to sign up and vote.
 
-## Getting Started
+Admin example: 
+user: ishay7@gmail.com 
+password:123456
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# Mashov
+Regular user:
+user: newuser@gmail.com
+password: asdasd
