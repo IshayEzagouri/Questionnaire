@@ -3,7 +3,6 @@ import 'package:mashov/screens/CoursePage_screen.dart';
 import 'package:mashov/screens/AdminPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:mashov/screens/LoginPage.dart';
-import 'package:mashov/screens/ViewScores.dart';
 import 'Classes/firebase_options.dart';
 import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'screens/test.dart';
@@ -39,7 +38,6 @@ class MyApp extends StatelessWidget {
           )),
       initialRoute: test.id,
       routes: {
-        ViewScores.id: (context) => ViewScores(),
         Registration.id: (context) => Registration(),
         AnswerQuestions.id: (context) => AnswerQuestions(),
         HomePage.id: (context) => HomePage(),
