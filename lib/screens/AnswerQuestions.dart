@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mashov/screens/HomePage.dart';
-import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -247,8 +245,6 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                           course['alreadyRatedUsersID'] ?? []);
 
                       if (alreadyRatedUsersId.contains(loggedInUser?.uid)) {
-                        headlineText = 'Thanks for your input';
-
                         // The current user has already rated this course, don't show the button.
                         return const SizedBox.shrink();
                       }
@@ -275,6 +271,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                                   _selectedButtonIndex = index;
                                   ratingBarVisibility = true;
                                   tappedCourseID = tappedCourseId;
+                                  headlineText =
+                                      'Thanks for your input'; // Move it here
                                 });
                               }
                             },
