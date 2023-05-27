@@ -6,6 +6,7 @@ import 'package:mashov/screens/DisplayQuestions_screen.dart';
 import 'package:mashov/screens/CoursePage_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mashov/screens/HomePage.dart';
+import 'package:mashov/screens/ViewScores.dart';
 import 'package:mashov/screens/test.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -163,6 +164,24 @@ class _AdminPageState extends State<AdminPage>
               Container(
                 child: Image.asset('images/logo.png'),
                 height: controller.value * 55,
+              ),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      width: 2,
+                      color: Colors.black87,
+                    ),
+                    shape: StadiumBorder()),
+                onPressed: () {
+                  Navigator.pushNamed(context, ViewScores.id);
+                },
+                child: Text(
+                  'View Scores',
+                  style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black),
+                ),
               ),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(

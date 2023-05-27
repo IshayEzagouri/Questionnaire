@@ -6,11 +6,7 @@ import 'package:mashov/screens/LoginPage.dart';
 import 'package:mashov/screens/test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-//TODO user can only vote once
-//TODO scores are added to all the questions not the specific one im answering--V done
-//TODO scores array needs to be in the same length as the questions
-//TODO if there are no questions, i shouldn't be able to see the rating baraz
-//TODO i need every document inside the users collection to have an array of map<string,bool>. inside the map i need to have the course id and true if finished rating.i will need to add to the map every time a course has been created, and vice versa.  then the future builder will need to have a condition and to only build buttons for courses that have a false value inside the array of map<string,bool> in the users collection.
+int questionsRated = 0; // Reset questionsRated to 0 for the next course
 
 bool isVisible = false;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -52,44 +48,97 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   }
 
   Future<void> fetchScoreList() async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
-        .collection('scores')
-        .doc(tappedCourseID)
-        .collection('scoreList')
-        .get();
+    if (tappedCourseID.isNotEmpty) {
+      final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection('scores')
+          .doc(tappedCourseID)
+          .collection('scoreList')
+          .get();
 
-    if (snapshot != null && snapshot.docs.isNotEmpty) {
-      scoreList = snapshot.docs
-          .map((doc) => (doc.data()['scores'] as List<dynamic>)
-              .map((value) => double.parse(value.toString()))
-              .toList())
-          .expand((i) => i)
-          .toList();
+      if (snapshot != null && snapshot.docs.isNotEmpty) {
+        scoreList = snapshot.docs
+            .map((doc) => (doc.data()['scores'] as List<dynamic>)
+                .map((value) => double.parse(value.toString()))
+                .toList())
+            .expand((i) => i)
+            .toList();
+      }
+
+      final currentUserID = loggedInUser?.uid;
+      final courseDoc =
+          await _firestore.collection('courses').doc(tappedCourseID).get();
+      final alreadyRatedUsersID =
+          List<String>.from(courseDoc['alreadyRatedUsersID'] ?? []);
+
+      if (alreadyRatedUsersID.contains(currentUserID)) {
+        setState(() {
+          ratingBarVisibility = false;
+        });
+      }
     }
   }
 
-  void updateScoresArr(List<double> scoreList) {
-    _firestore
-        .collection('scores')
-        .doc(tappedCourseID)
-        .collection('scoreList')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) async {
-        var existingScores = doc['scores'] as List<dynamic>;
-        var newScores =
-            List<double>.from(existingScores.map((score) => score.toDouble()));
-        for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
-          newScores[i] += scoreList[i];
+  void updateScoresArr(String courseId, List<double> scoreList) async {
+    try {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('scores')
+          .doc(courseId)
+          .get();
+
+      if (documentSnapshot.exists) {
+        final Map<String, dynamic>? data =
+            documentSnapshot.data() as Map<String, dynamic>?;
+
+        if (data != null && data.containsKey('scores')) {
+          final List<dynamic> existingScores = data['scores'] as List<dynamic>;
+          final List<double> newScores = List<double>.from(
+              existingScores.map((score) => score.toDouble()));
+
+          for (int i = 0; i < scoreList.length && i < newScores.length; i++) {
+            newScores[i] += scoreList[i];
+          }
+
+          await FirebaseFirestore.instance
+              .collection('scores')
+              .doc(courseId)
+              .update({'scores': newScores});
+
+          // Check if all questions have been rated
+          final bool allRated =
+              newScores.every((score) => score >= 1 && score <= 5);
+
+          if (allRated) {
+            // Increment the usersVoted value by 1
+            await FirebaseFirestore.instance
+                .collection('scores')
+                .doc(courseId)
+                .update({'usersVoted': FieldValue.increment(1)});
+
+            // Reset the questionsRated counter for the current course
+            questionsRated = 0;
+
+            // Increment usersVoted in all documents inside the questions collection
+            final QuerySnapshot<Map<String, dynamic>> questionsSnapshot =
+                await FirebaseFirestore.instance.collection('questions').get();
+
+            for (final DocumentSnapshot<Map<String, dynamic>> questionDoc
+                in questionsSnapshot.docs) {
+              final Map<String, dynamic>? questionData = questionDoc.data();
+              final int currentUsersVoted = questionData?['usersVoted'] ?? 0;
+              await questionDoc.reference.update({
+                'usersVoted': currentUsersVoted + 1,
+              });
+            }
+          }
+        } else {
+          print('Field "scores" does not exist in the document');
         }
-        await FirebaseFirestore.instance
-            .collection('scores')
-            .doc(tappedCourseID)
-            .collection('scoreList')
-            .doc(doc.id)
-            .update({'scores': newScores});
-      });
-    });
+      } else {
+        print('Document does not exist');
+      }
+    } catch (e) {
+      print('Error updating scores: $e');
+    }
   }
 
   static List<Map<String, dynamic>> _questions = [];
@@ -108,17 +157,20 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
     });
   }
 
-  void getTappedCourseID(var list) {
-    _firestore
-        .collection('courses')
-        .doc(list)
-        .get()
-        .then((DocumentSnapshot snapshot) {
-      String id = snapshot.id;
-      tappedCourseID = id;
-    }).catchError((error) {
-      print('Error getting document: $error');
-    });
+  Future<String?> getTappedCourseID(String courseId) async {
+    try {
+      final courseDoc =
+          await _firestore.collection('courses').doc(courseId).get();
+      if (courseDoc.exists) {
+        return courseDoc.id;
+      } else {
+        print('Course $courseId does not exist');
+        return null;
+      }
+    } catch (e) {
+      print('Error getting document: $e');
+      return null;
+    }
   }
 
   String tappedCourseID = '';
@@ -156,6 +208,8 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
   @override
   void initState() {
     _fetchQuestions();
+    getCurrentUser();
+    fetchScoreList(); // Call fetchScoreList to check if the user has already rated the course
     super.initState();
   }
 
@@ -211,15 +265,18 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                                 borderRadius: BorderRadius.circular(30.0),
                               ),
                             ),
-                            onPressed: () {
-                              _currentIndex = 0;
-                              scoreList.clear();
-                              getTappedCourseID(documents[index].id);
-
-                              setState(() {
-                                _selectedButtonIndex = index;
-                                ratingBarVisibility = true;
-                              });
+                            onPressed: () async {
+                              final course = documents[index];
+                              final courseId = course.id;
+                              final tappedCourseId =
+                                  await getTappedCourseID(courseId);
+                              if (tappedCourseId != null) {
+                                setState(() {
+                                  _selectedButtonIndex = index;
+                                  ratingBarVisibility = true;
+                                  tappedCourseID = tappedCourseId;
+                                });
+                              }
                             },
                             child: Text(
                               course['name'],
@@ -264,7 +321,7 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
               minRating: 1,
               direction: Axis.horizontal,
               allowHalfRating: true,
-              itemCount: _questions.length,
+              itemCount: 5,
               itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
               itemBuilder: (context, _) => Icon(
                 Icons.star,
@@ -276,10 +333,10 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                 });
 
                 print(rating);
-                if (_currentIndex < _questions.length - 1)
-                  _showNextQuestion();
-                else {
-                  // scoreList.clear();
+                questionsRated++; // Increment the questionsRated variable
+
+                if (questionsRated == _questions.length) {
+                  // All questions have been rated for the current course
                   _firestore.collection('courses');
                   getCurrentUser();
                   uid = await getUserId(loggedInUser);
@@ -294,8 +351,17 @@ class _AnswerQuestionsState extends State<AnswerQuestions> {
                   setState(() {
                     ratingBarVisibility = false;
                   });
-                  updateScoresArr(scoreList);
+
+                  // Call updateScoresArr to update the scores and usersVoted fields
+                  updateScoresArr(tappedCourseID, scoreList);
+                  _currentIndex = 0;
                   print('visibilty turned false');
+
+                  questionsRated =
+                      0; // Reset questionsRated to 0 for the next course
+                } else {
+                  // Continue to the next question
+                  _showNextQuestion();
                 }
               },
             ),

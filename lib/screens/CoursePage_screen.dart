@@ -147,6 +147,11 @@ class _CoursePageState extends State<CoursePage> {
                                             .doc(documents[index].id)
                                             .update({'name': value});
 
+                                        await _firestore
+                                            .collection('scores')
+                                            .doc(documents[index].id)
+                                            .update({'name': value});
+
                                         getTappedCourseID(documents[index].id);
                                         updateScoresDocName(value);
                                       },
@@ -166,6 +171,11 @@ class _CoursePageState extends State<CoursePage> {
                                       onChanged: (value) {
                                         _firestore
                                             .collection('courses')
+                                            .doc(documents[index].id)
+                                            .update({'professor': value});
+
+                                        _firestore
+                                            .collection('scores')
                                             .doc(documents[index].id)
                                             .update({'professor': value});
                                       },
@@ -238,6 +248,7 @@ class _CoursePageState extends State<CoursePage> {
                   'name': '',
                   'id': courseLength,
                   'scores': list,
+                  'usersVoted': 0,
                 };
                 var scoresRef = await _firestore
                     .collection('scores')

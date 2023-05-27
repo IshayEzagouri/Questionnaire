@@ -1,7 +1,6 @@
 import 'package:mashov/screens/AdminPage.dart';
 import 'package:mashov/screens/HomePage.dart';
 import 'package:flutter/material.dart';
-import '../Classes/Questions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -13,7 +12,7 @@ final CollectionReference questionsCollectionReference =
     _firestore.collection('questions');
 final CollectionReference scoresCollectionReference =
     _firestore.collection('scores');
-List<Question> questions = [];
+
 String questionText = '';
 late int tappedIDX;
 late int index;
@@ -188,7 +187,11 @@ class _DisplayQuestionsState extends State<DisplayQuestions> {
           FloatingActionButton(
             onPressed: () async {
               try {
-                var dataToSave = <String, dynamic>{'id': index, 'text': ''};
+                var dataToSave = <String, dynamic>{
+                  'id': index,
+                  'text': '',
+                  'usersVoted': 0
+                };
                 setState(() {
                   questionsCollectionReference.add(dataToSave);
                   addZeroToScores();
