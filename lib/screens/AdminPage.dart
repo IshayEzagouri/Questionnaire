@@ -85,15 +85,17 @@ class _AdminPageState extends State<AdminPage>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Center(
-            child: Text(
-              'Welcome ${loggedInUser!.email}',
-              style: TextStyle(
+          if (loggedInUser != null) // Check if loggedInUser is not null
+            Center(
+              child: Text(
+                'Welcome ${loggedInUser!.email}',
+                style: TextStyle(
                   color: Colors.orange,
                   fontSize: 22,
-                  fontWeight: FontWeight.w700),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
           SizedBox(
             height: 1,
             child: Padding(
